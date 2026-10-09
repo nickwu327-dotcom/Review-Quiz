@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Paper Son 單字複習</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f6f5fb;--card:#fff;--tx:#1f1d2b;--mut:#6b6880;--pri:#5746e3;--pri2:#ece9fd;--ok:#1a8f4d;--bad:#d03a3a;--bd:#e3e0f0}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15141c;--card:#201f2b;--tx:#efeef7;--mut:#a09db5;--pri:#8d7fff;--pri2:#2c2945;--ok:#4cc982;--bad:#ff7b7b;--bd:#33314a}}
+:root[data-theme="dark"]{--bg:#15141c;--card:#201f2b;--tx:#efeef7;--mut:#a09db5;--pri:#8d7fff;--pri2:#2c2945;--ok:#4cc982;--bad:#ff7b7b;--bd:#33314a}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.55 system-ui,-apple-system,"Noto Sans TC","Segoe UI",sans-serif}
+.wrap{max-width:760px;margin:0 auto;padding:20px 16px 60px}
+h1{font-size:1.35rem;margin:4px 0 2px}.sub{color:var(--mut);font-size:.9rem;margin:0 0 16px}
+.tabs,.modes{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+button{font:inherit;cursor:pointer;border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:10px;padding:8px 14px}
+button.on{background:var(--pri);border-color:var(--pri);color:#fff}
+.tabs button{flex:1;font-weight:600}
+.modes button{padding:6px 12px;font-size:.9rem}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:14px 16px;margin-bottom:10px}
+.w{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.w b{font-size:1.2rem;color:var(--pri)}.pos{color:var(--mut);font-size:.85rem}.zh{margin-left:auto;color:var(--mut);font-size:.9rem}
+.star{font-size:.75rem;background:var(--pri2);color:var(--pri);border-radius:6px;padding:1px 7px}
+ol{margin:8px 0 0;padding-left:1.3em}li{margin:3px 0}
+.eg{margin-top:8px;color:var(--mut);font-size:.9rem;font-style:italic}
+.q .def{font-size:1.1rem;margin:6px 0 14px}
+.tag{color:var(--mut);font-size:.85rem}
+input{font:inherit;width:100%;padding:11px 12px;border-radius:10px;border:2px solid var(--bd);background:var(--bg);color:var(--tx);margin-bottom:10px}
+input:focus{outline:none;border-color:var(--pri)}
+.row{display:flex;gap:8px;flex-wrap:wrap}.pri{background:var(--pri);color:#fff;border-color:var(--pri)}
+.fb{margin-top:12px;padding:10px 12px;border-radius:10px;font-weight:600}
+.fb.ok{background:color-mix(in srgb,var(--ok) 15%,transparent);color:var(--ok)}
+.fb.no{background:color-mix(in srgb,var(--bad) 15%,transparent);color:var(--bad)}
+.score{display:flex;justify-content:space-between;color:var(--mut);font-size:.9rem;margin-bottom:8px}
+select{font:inherit;width:100%;padding:9px 12px;border-radius:10px;border:1px solid var(--bd);background:var(--card);color:var(--tx)}.tag:empty{display:none}.bn{background:var(--pri2);color:var(--pri);border-radius:10px;padding:8px 12px;margin-bottom:10px;font-size:.92rem}.un{margin-bottom:6px}.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:3px}.chip{border:1px solid var(--bd);background:var(--card);border-radius:999px;padding:3px 11px;font-size:.88rem;cursor:pointer;user-select:none}.chip.on{background:var(--pri);border-color:var(--pri);color:#fff}.chip.off{opacity:.45;cursor:not-allowed}.chip input{display:none}summary{cursor:pointer;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;list-style:none}summary::-webkit-details-marker{display:none}.wd{font-size:1.1rem;color:var(--pri)}.pend{opacity:.6;padding:8px 16px;display:flex}.pend .zh{margin-left:auto}details.card ol{margin-top:10px}</style></head><body><div class="wrap">
+<h1>📚 Paper Son 單字複習</h1>
+<p class="sub">G5 單字表 ・ 每次出現其中 1 種解釋（共 5 種）</p>
+<div class="tabs"><button id="t0" class="on">ALL</button><button id="t1">重點複習</button></div>
+<div id="wk"></div>
+<div class="modes"><button id="m0" class="on">🃏 閃卡（看解釋 → 翻答案）</button><button id="m1">✍️ 填單字測驗</button><button id="rs">🔄 重新開始</button></div>
+<div id="app"></div></div>
+<script>
+// [word, pos, 中文, wrong?, [5 definitions], example]
+const W=[
+["scholar","n.","學者",0,["a person who has much knowledge, usually from research and study","an expert who studies a subject very deeply","someone who spends years reading and researching in a field","a highly educated person who knows a lot about one area of learning","a person who studies history, science or literature as a serious job"],"The ____ used books and research to learn more about ancient history."],
+["witness","n.","目擊者",1,["a person who sees or hears something that happened","someone who watches a crime or accident take place","a person who is asked to tell a court or the police what they saw","a person who was present when an event happened and can describe it","someone who can say 'I saw it with my own eyes'"],"The police asked the ____ to tell them what he saw."],
+["passport","n.","護照",0,["an official document that shows that the holder is a citizen of a country","a small book you must show at the border when you travel abroad","an ID that lets you leave your country and enter another one","a government paper with your photo, name and nationality","the travel document that officers stamp when you arrive in a new country"],"She forgot her ____ at home and could not travel to Japan."],
+["admit","v.","准許進入；承認",0,["to let in; to allow to enter","to give permission for someone to come into a place","to open the door for a person or group to go inside","to accept someone into a school, hospital or country","to agree to let a person enter (the opposite of keeping out)"],"The guard will ____ visitors who have a ticket."],
+["transcript","n.","逐字稿；記錄",0,["an exact typed or written copy of spoken words","a word-for-word written record of a speech or interview","a document that shows everything that was said in a recording","a text version made by writing down what people said out loud","the written form of a conversation, hearing or video"],"The reporter made a ____ of the interview."],
+["deportation","n.","驅逐出境",0,["being sent out of a country because of not having permission to stay","the act of forcing a foreigner to leave a country by law","when the government makes someone go back to their home country","a legal removal of a person who broke immigration rules","the punishment of being made to leave the country you are living in"],"The man faced ____ after breaking the country's immigration laws."],
+["immigrant","n.","移民",0,["a person who moves to another country","someone who comes to a new country to live there","a person who leaves home and settles permanently in a foreign land","someone born in one country who now lives in a different one","a newcomer who moves abroad hoping for a better life or job"],"The ____ moved to a new country to find a better life."],
+["prohibit","v.","禁止",0,["to not allow by law","to say officially that something must not be done","to forbid; to make a rule against something","to stop people from doing something by using a rule or law","to ban (the opposite of 'allow')"],"The school rules ____ students from using phones during class."],
+["affidavit","n.","宣誓書",0,["a written statement that is sworn to be true (used as legal evidence)","a legal paper in which a person promises that the facts are true","a document signed under oath that can be used in court","a sworn written promise that what you say is the truth","official paperwork where someone swears their statement is honest"],"She signed an ____ to confirm that her statement was true."],
+["diplomat","n.","外交官",1,["a person whose job is to work with the governments of other countries","an official who represents his or her country abroad","someone who talks with leaders of other nations to keep good relations","a government worker who lives in a foreign country to speak for their homeland","a person skilled at making peace and agreements between countries"],"The ____ met with leaders from another country to discuss peace."],
+["arrangement","n.","安排；約定",0,["an agreement; a plan for how something will happen","a plan made ahead of time about when and where something will take place","the way things are organized or put in order","a deal that people have agreed to","preparations that are made so an event can happen smoothly"],"We made an ____ to meet at the library after school."],
+["suspect","v.","懷疑",1,["to think that something is probably true","to believe someone did something wrong without having proof","to have a feeling that something bad may be happening","to doubt a person and think they might be guilty","to guess that something is true, but you are not completely sure"],"The police ____ the man of stealing the money."],
+["reveal","v.","揭露；透露",0,["to make known; to tell something that was secret before","to show something that was hidden","to uncover so that everyone can see","to let people find out a secret","to open up or expose what was kept out of sight"],"The teacher opened the box to ____ what was inside."],
+["estimate","v.","估計",1,["to make a guess about an amount, size, etc.","to say about how big, long or much something is without measuring exactly","to figure out a rough number or cost","to judge an approximate value by thinking, not counting","to calculate roughly (the answer is close, but not exact)"],"I ____ that there are about 50 students at the school, but I need to count them to know for sure."],
+["consider","v.","認為；考慮",1,["to think of as","to believe someone or something to be a certain way","to regard something as being a particular kind of thing","to think about carefully before deciding","to have an opinion that something is true of a person"],"Many people ____ her a great teacher."],
+["peculiarity","n.","怪癖；特質",1,["a quality that is unusual or uncommon","a strange habit or feature that makes someone or something different","an odd characteristic that most others do not have","something that seems weird or out of the ordinary about a person","a special feature that is not normal"],"Her habit of talking to herself was a strange ____."],
+["nephew","n.","姪子；外甥",0,["the son of one's brother or sister","a boy who is the child of your sibling","your brother's or sister's male child","the male relative whose parent is your brother or sister","a boy in a family who calls you 'uncle' or 'aunt'"],"My ____, who is my sister's young son, loves playing soccer with me."],
+["certificate","n.","證書",0,["a statement on paper that shows that certain facts are true","an official paper that proves you finished or achieved something","a document given as proof of a skill, award or event","a printed paper that shows you passed a course or test","a formal document, like a birth or award paper, that proves a fact"],"The school gave her a ____ to show that she had reached her AR goal."],
+["claim","v./n.","聲稱；主張",1,["a statement that something is true / to say that something is true or is yours","to say you own something or have a right to it","to say that something is a fact, even though it has not been proved","to ask for something that belongs to you, such as lost bags","a statement that people may or may not believe"],"The boy made a ____ that he saw a bear in the woods, but he could not prove that it was there."],
+["coordinate","v.","協調；使配合",0,["to plan things so that they match","to organize people or actions so they work well together","to make different parts fit and work as one team","to arrange things so they happen at the same time or in the same way","to manage several tasks or groups so that nothing conflicts"],"We will ____ our plans so everything works well together."]
+];
+const WK={admit:1,immigrant:1,prohibit:1,scholar:2,witness:2,passport:2,diplomat:2,transcript:2,affidavit:2,deportation:2,arrangement:3,coordinate:3,claim:3,nephew:3,peculiarity:3,suspect:3,reveal:3,estimate:4,consider:4,certificate:4};
+W.forEach(w=>w.push(WK[w[0]]));
+const N=`1|citizen|n.|公民|a person who legally belongs to a country~a member of a country who has rights such as voting~someone born in a nation or officially accepted as its member~a person who has the legal rights of a country~someone who holds the passport of a particular country
+1|immigration|n.|移民（入境）|the act of coming to live in a new country~the process of moving permanently to a foreign land~the government office that checks people entering a country~the movement of people into a country to settle there~what officers control at the border to decide who may stay
+1|process|n.|過程；程序|a series of steps taken to get something done~the way something is done from start to finish~a set of actions that happen in a certain order~the official steps you must follow to get something approved~a method with several stages that leads to a result
+1|interrogation|n.|審問|a long period of hard questioning by officials~the act of asking someone many questions to get information~serious questioning of a person who may be hiding something~what officers do when they question a suspect~a formal question-and-answer session to find the truth
+1|detain|v.|拘留；扣留|to keep someone in a place and not let them leave~to hold a person for questioning by officials~to make someone stay longer than planned~to stop a person and delay them~to keep a person under guard
+1|laborer|n.|勞工|a person who does hard physical work for pay~a worker who does manual work such as farming or building~someone who works with their hands, usually for low wages~a person hired to do heavy, unskilled jobs~a worker on a farm, railroad or construction site
+1|merchant|n.|商人|a person who buys and sells goods to make money~someone who runs a business selling things~a trader who sells products in a shop or market~a person whose job is trade~a seller of goods, often in large amounts
+2|opportunity|n.|機會|a chance to do something good~a time when it is possible to do something you want~a good moment to improve your life~a possibility for success or progress~a situation that lets you try something new
+2|resemblance|n.|相似|the state of looking like someone or something~a similarity in how two people or things look~the way one thing is like another~a likeness between family members, for example~sameness in appearance or qualities
+2|testify|v.|作證|to say what you know is true in a court of law~to give a statement as a witness~to tell officials under oath what you saw or know~to speak in court to support the facts~to give evidence
+3|pin|n./v.|別針；固定|a short thin piece of metal with a sharp point~to fasten something in place with a thin metal point~a small badge worn on clothing~to hold something firmly so it cannot move~a pointed tool used to hold cloth or paper together
+3|related|adj.|有關係的；有親戚關係的|belonging to the same family~connected to something in some way~having a link with another person or thing~sharing a common ancestor~having a connection in subject or cause
+3|eldest|adj.|最年長的|oldest of the children in a family~the first-born among brothers and sisters~the person in a group who is greatest in age~the oldest one in a family~the sibling who was born before all the others
+4|report|n./v.|報告；報導|a spoken or written account of something~to tell people what happened~to give information to an official or newspaper~a document that gives facts about a topic~to officially tell the police or a boss about a problem
+4|exclusion|n.|排除|the act of keeping someone or something out~the refusal to let a person join or enter~the state of being left out~a rule that keeps certain people from coming in~leaving something out on purpose
+4|act|n.|法案；行為|an official law made by a government~something that a person does~to do something or take action~a part of a play~a law passed by a country's lawmakers
+4|identity|n.|身分|who a person is~the name and facts that show who someone is~the qualities that make a person different from others~the personal details on an ID card~the characteristics of a person or group
+4|make certain|phr.|確認|to check that something is true or done~to be sure about something~to do something so there is no doubt~to double-check before you go on~to confirm so that no mistake happens
+4|experience|n./v.|經驗；經歷|something that happens to you in life~knowledge gained by doing something for a long time~to feel or live through an event~an event that affects your feelings~skill that comes from practice
+4|official|adj./n.|官方的；官員|approved by a government or leader~a person who holds an important position in an organization~a person in charge of rules at a game or at the border~formal and having authority~a worker for a government office
+5|journal|n.|日記；期刊|a daily written record of your thoughts and events~a notebook for writing about your experiences~a diary~a written account kept day by day~a magazine about a special subject
+5|discrimination|n.|歧視|unfair treatment of people because of who they are~treating a group worse because of race, age or gender~prejudice shown in actions~unfairness toward people who are different~denying people equal rights for no good reason
+5|segregation|n.|隔離|keeping groups of people apart by force or law~separating people by race in schools and public places~the act of setting one group away from others~a system that gives different groups different places to go~forced separation of people
+5|Jim Crow laws|n.|吉姆·克勞法|laws in the South that kept Black and white people separate~unfair rules that supported racial segregation~old U.S. laws that denied Black people equal rights~laws that made separate schools, buses and restaurants~racist state laws used until the 1960s
+5|crop|n.|農作物|a plant that farmers grow for food or money~the amount of plants gathered at harvest time~wheat, corn or cotton grown in fields~plants grown in large amounts on a farm~something planted and gathered each season
+5|sharecropper|n.|佃農|a farmer who works on land owned by someone else~a person who gives part of the crop to the landowner as rent~a poor farmer who rents land and pays with crops~a worker who farms another person's fields for a share of the harvest~a tenant farmer in the American South
+5|cotton|n.|棉花|a soft white plant fiber used to make cloth~a crop that grows in bolls on a plant~the plant that is picked and made into thread~a fluffy material used for clothes and sheets~a major crop in the American South
+5|boll weevil|n.|棉鈴象鼻蟲|a small insect that destroys cotton plants~a beetle that eats the seed pod of cotton~a pest that ruined many cotton crops~a bug that damaged farmers' harvests in the South~a harmful insect with a long snout
+5|war effort|n.|戰時努力|all the things people do to help their country win a war~work done at home to support soldiers~the use of factories and workers to make supplies for war~the nation's combined actions during a war~helping the army by making or saving things
+5|integrated|adj.|融合的；不分種族的|open to people of all races~combined into one whole~mixed so different groups are together~no longer separated by race~joined together as one system
+6|current|adj./n.|現在的；水流|happening now~of the present time~a steady flow of water or air~the movement of water in one direction~going on at this moment
+6|harvest|n./v.|收成；收割|the time when crops are gathered~to pick or cut crops that are ready~the amount of crops collected~the gathering of ripe plants~the season when farmers collect food from the fields
+6|fertilizer|n.|肥料|something added to soil to help plants grow~a substance that makes land richer~plant food that farmers spread on the ground~a chemical or natural material that improves the soil~a product used to grow bigger crops
+6|plow|n./v.|犁；耕地|a farm tool that turns over the soil~to cut and turn the earth before planting~to dig up a field in rows~a tool pulled by an animal or tractor~to prepare land for seeds
+6|owe|v.|欠（債）|to have to pay money back to someone~to be required to give something to another person~to be in debt to somebody~to need to repay a favor or loan~to be responsible for paying
+6|rent|n./v.|租金；租|money paid to use a house or land~to pay money to live in or use something~the regular payment to a landlord~to let someone use your property for money~the cost of staying in an apartment each month
+6|debt|n.|債務|money that you owe to someone~something that must be paid back~the state of owing more than you have~a loan that has not been repaid~an amount of money a person is obligated to pay
+6|platform|n.|月台；平台|a raised flat area where people wait for a train~a stage for speakers~a flat surface higher than the ground~the place at a station where passengers get on~a raised floor for performers
+6|assembly line|n.|生產線|a row of workers and machines that build a product step by step~a factory system where each person does one job~a way of making things quickly in a factory~a moving line in which parts are put together~a method used to build cars in large numbers
+6|manufacture|v.|製造|to make goods in a factory~to produce things in large amounts using machines~to build products to sell~to create a product from raw materials~to make something by industrial work
+7|community|n.|社區；群體|a group of people who live in the same area~the place where people live and work together~a group of people who share interests or a background~the people around your home and school~neighbors who help and support each other
+7|furniture|n.|家具|things such as tables, chairs and beds in a home~movable objects that make a room ready to use~items people sit on, sleep on or store things in~the objects you put inside a house or office~what you buy to fill a living room or bedroom
+7|bunk bed|n.|雙層床|two beds built one above the other~a bed with another bed on top of it~a sleeping place for two people that saves space~beds stacked in a tower, often used by siblings~a bed with a ladder to climb to the top
+7|flight of stairs|phr.|一段樓梯|a set of steps that goes from one floor to the next~a row of stairs between two levels of a building~the steps you climb to reach the upper floor~one section of a staircase~stairs that take you up or down
+7|mile|n.|英里|a unit of distance equal to about 1.6 kilometers~a length used to measure how far you travel~5,280 feet~a distance used for roads and running races in the U.S.~a measure of length that is longer than a kilometer
+7|soak|v.|浸泡|to leave something in liquid for a time~to make something completely wet~to let something sit in water to become soft or clean~to get very wet from rain or water~to take in liquid
+7|mutter|v.|喃喃自語|to speak in a low voice that is hard to hear~to say something quietly, often because you are unhappy~to complain under your breath~to talk softly to yourself~to speak unclearly without opening your mouth much
+7|chuckle|v./n.|輕笑|to laugh quietly~to make a soft, short laugh~to laugh in a low voice because something is funny~a quiet laugh~to giggle gently
+7|talk back|phr.|頂嘴|to answer a person in a rude way~to reply to an adult disrespectfully~to argue with someone in authority~to say rude words instead of listening~to speak back with a bad attitude
+7|ethnicity|n.|族裔|the cultural group a person belongs to~a person's background, such as language, customs and ancestry~the national or cultural origin of a group of people~the shared traditions of a group~the group you belong to because of your family's culture
+8|struggling|adj.|掙扎的；艱苦的|having a very hard time~trying hard to do something difficult~not having enough money or success~fighting to get through a problem~working hard but still finding it difficult
+8|frown|v./n.|皺眉|to bring your eyebrows together because you are upset~to look unhappy or angry~to show you do not like something with your face~the opposite of a smile~to make a worried or serious face
+8|disrespectful|adj.|無禮的|showing no respect for someone~rude to other people~speaking or acting in a way that hurts others' feelings~not polite to adults or teachers~treating someone as if they do not matter
+8|percentage|n.|百分比|a part of a whole written out of 100~an amount shown with the sign %~a share or fraction of something~how many parts in every hundred~a number that tells how much of the total
+8|expect|v.|預期；期待|to think something will probably happen~to believe that something is coming~to wait for something that you are sure about~to require someone to do something~to look forward to a result
+8|cross one's fingers|phr.|祈求好運|to hope for good luck~to put one finger over another as a sign of luck~to wish that something goes well~to hope that a plan will work~a gesture people make when they want good things
+8|belongings|n.|財物；個人物品|things that a person owns~the personal items you carry or keep~your possessions such as clothes and books~objects that belong to you~the stuff you pack when you move
+8|countryside|n.|鄉間|land outside towns and cities~an area with farms, fields and villages~a quiet place with lots of nature~rural land far from busy streets~the green areas away from the city
+8|resident|n.|居民|a person who lives in a particular place~someone who has a home in a town or building~a person who stays somewhere for a long time~an inhabitant of a city or country~someone who lives in an apartment or neighborhood
+8|get used to|phr.|習慣於|to become familiar with something new~to start to feel normal about a change~to learn to accept a new situation~to adjust to something different~to stop finding something strange
+10|native|adj./n.|原生的；本地人|born in or belonging to a certain place~living naturally in a place and not brought from elsewhere~a person or animal that originally comes from an area~growing wild in a region~related to the place where you were born
+10|habitat|n.|棲息地|the natural home of an animal or plant~the place where a living thing finds food and shelter~the environment where a species lives~an area such as a forest or pond that animals live in~the surroundings where wildlife grows
+10|population|n.|族群；人口|the number of people or animals living in a place~all the individuals of one kind in an area~how many living things are in a group~the total count of residents~the size of a group of animals
+10|restore|v.|恢復|to bring something back to its old condition~to fix something so it is like new~to put back what was lost~to return a place to the way it was before~to make healthy or strong again
+10|comeback|n.|捲土重來；復甦|a return to success after a hard time~when something becomes strong again~a recovery from a bad situation~the return of an animal that was nearly gone~a second chance that works well
+10|migrating|v.|遷徙|moving from one place to another with the seasons~traveling a long way to find food or warmer weather~going to live in another region regularly~when birds or animals travel each year~changing places during a certain time of year
+10|creature|n.|生物|any living animal~a living thing that is not a plant~an animal, often a strange one~a being that moves and lives~something alive such as a bird or frog
+10|chemical|n.|化學物質|a substance made by or used in chemistry~a material used in labs, farms or factories~something that can change other materials~a man-made substance, often used to clean or kill pests~matter with a specific make-up
+10|poison|n./v.|毒；下毒|a substance that can make people or animals sick or die~something harmful if you eat or touch it~to harm a living thing with a dangerous substance~a material that kills~to put something deadly into food, water or land
+10|fungus|n.|真菌|a living thing like a mushroom or mold~an organism that grows on dead or wet material~a plant-like living thing that has no leaves~a type of mold that can make plants or animals sick~something that grows in damp places and spreads spores`;
+N.split("\n").forEach(l=>{const[k,a,b,c,d]=l.split("|");W.push([a,b,c,0,d.split("~"),"",+k])});
+const P={11:"sensitive,harm,extinct,atmosphere,global warming,fossil fuel,deformed,shrink,depend on,food chain",12:"shrub,fence,temporary,shallow,wetlands,woodlands,convince,propose,force,devour",13:"introduce,spotted,burrow,dozen,disease,develop,drain,dump,damage,disappear",14:"hatchet,fend for one's self,ignite,sputter,painstaking,gratify,self-pity,calf,gingerly,jerk",15:"flammable,kindling,bark,birch tree,match,strike,smolder,accomplish,frustration,wince",16:"cave dweller,examine,staff,doze,gesture,register,stumble,rot,quill,injury",17:"spark,charcoal,glow,flue,fine,fluff,twig,position,limp,nick"};
+Object.entries(P).forEach(([k,v])=>v.split(",").forEach(x=>W.push([x,"","",0,[],"",+k]))); // 解釋尚未完成的單字
+W.sort((x,y)=>x[6]-y[6]);
+const U=[[1,4,"The Path to Paper Son"],[5,8,"Ivy's Journal"],[10,13,"A Place for Frogs"],[14,17,"from Hatchet"]];
+let tab=0,mode=0,cur=null,rev=false,sc={ok:0,n:0},fb=null,hint=false;
+const app=document.getElementById('app');
+const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const START=new Date(2026,7,31),T=new Date(),T0=new Date(T.getFullYear(),T.getMonth(),T.getDate());
+const cw=Math.floor(Math.round((T0-START)/864e5)/7)+1; // 開學第幾週（<1 代表尚未開學）
+const avail=k=>W.some(w=>w[6]===k);
+let sel=new Set();const preset=f=>{sel=new Set(Array.from({length:18},(_,i)=>i).filter(k=>avail(k)&&f(k)))};
+preset(k=>cw<1||k<=cw); // 自動勾選前週＋當週
+const base=()=>W.filter(w=>sel.has(w[6]));
+const listAll=()=>tab?base().filter(w=>w[3]):base();
+const list=()=>listAll().filter(w=>w[4].length);
+function mark(){
+ document.getElementById('t0').textContent='ALL（'+base().length+'）';
+ document.getElementById('t1').textContent='重點複習（'+base().filter(w=>w[3]).length+'）';
+ document.getElementById('t0').classList.toggle('on',!tab);document.getElementById('t1').classList.toggle('on',!!tab);
+ [0,1].forEach(i=>document.getElementById('m'+i).classList.toggle('on',mode===i));
+ const has=k=>W.filter(w=>w[6]===k).length;
+ const ds=`${T0.getFullYear()}/${T0.getMonth()+1}/${T0.getDate()}`;
+ document.getElementById('wk').innerHTML=`<div class="bn">📅 今天 ${ds} ・ ${cw<1?'尚未開學（開學日 2026/08/31）':'開學第 <b>'+cw+'</b> 週（開學日 2026/08/31）'}</div>`+
+ U.map(([a,b,n])=>`<div class="un"><div class="tag">${n}</div><div class="chips">`+Array.from({length:b-a+1},(_,i)=>a+i).map(k=>`<label class="chip ${sel.has(k)?'on':''} ${has(k)?'':'off'}"><input type="checkbox" data-k="${k}" ${sel.has(k)?'checked':''} ${has(k)?'':'disabled'}>W${k}${k===cw?' ★本週':''}${W.some(w=>w[6]===k&&w[4].length)?'':'・解釋待補'}</label>`).join('')+'</div></div>').join('')+
+ `<div class="row" style="margin:8px 0 14px"><button data-p="upto">至本週</button><button data-p="now">只看本週</button><button data-p="all">全選</button><button data-p="none">清除</button></div>`;
+ document.querySelectorAll('#wk input').forEach(i=>i.onchange=()=>{const k=+i.dataset.k;i.checked?sel.add(k):sel.delete(k);cur=null;render()});
+ document.querySelectorAll('#wk [data-p]').forEach(b=>b.onclick=()=>{const m=b.dataset.p;preset(k=>m==='all'||(m==='upto'&&(cw<1||k<=cw))||(m==='now'&&k===cw));cur=null;render()});
+}
+function render(){mark();if(!listAll().length){app.innerHTML='<div class="card">請先勾選上方的週別</div>';return}
+ if(!list().length){app.innerHTML='<div class="card">這個範圍的單字解釋還在準備中，請改選其他週別。</div>';return}
+ mode?quiz():flash()}
+function pick(){const L=list();let w;do{w=L[Math.floor(Math.random()*L.length)]}while(L.length>1&&cur&&w===cur.w);cur={w,k:Math.floor(Math.random()*5)};fb=null;hint=false;rev=false}
+function ensure(){if(!cur||!list().includes(cur.w))pick()}
+function flash(){ensure();const{w,k}=cur;
+app.innerHTML=`<div class="card q"><div class="tag">Week ${w[6]} ・ ${w[1]} ・ 解釋 ${k+1} / 5${w[3]?' ・ ★ 重點':''}</div><div class="def">${esc(w[4][k])}</div>
+${rev?`<div class="fb ok" style="font-size:1.2rem">${w[0]} <span style="font-weight:400;font-size:.9rem">（${w[2]}）</span></div>${w[5]?`<div class="eg">${esc(w[5])}</div>`:""}`:''}
+<div class="row" style="margin-top:12px">${rev?'<button class="pri" id="nx">下一張 →</button>':'<button class="pri" id="sh">顯示答案</button><button id="sw">換一種解釋</button>'}</div></div>`;
+if(rev)document.getElementById('nx').onclick=()=>{pick();flash()};else{document.getElementById('sh').onclick=()=>{rev=true;flash()};document.getElementById('sw').onclick=swap}}
+function swap(){cur.k=(cur.k+1+Math.floor(Math.random()*4))%5;mode?quiz():flash()}
+function quiz(){ensure();const{w,k}=cur;
+app.innerHTML=`<div class="score"><span>答對 ${sc.ok} / ${sc.n}</span><span>共 ${list().length} 字</span></div><div class="card q"><div class="tag">Week ${w[6]} ・ ${w[1]} ・ 解釋 ${k+1} / 5${hint?' ・ 首字母 '+w[0][0]+'，共 '+w[0].length+' 個字母':''}</div><div class="def">${esc(w[4][k])}</div>${w[5]?`<div class="tag" style="margin-bottom:10px">${esc(w[5])}</div>`:""}
+<input id="a" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="輸入單字…" ${fb?'disabled':''}>
+<div class="row">${fb?'<button class="pri" id="nx">下一題 →</button>':'<button class="pri" id="ck">送出</button><button id="sw">換一種解釋</button><button id="hn">提示</button>'}</div>
+${fb?`<div class="fb ${fb.ok?'ok':'no'}">${fb.ok?'✅ 答對了！':'❌ 正確答案：'+w[0]} <span style="font-weight:400">（${w[2]}）</span></div>`:''}</div>`;
+const a=document.getElementById('a');if(fb){a.value=fb.v}else a.focus();
+a.onkeydown=e=>{if(e.key==='Enter')fb?(pick(),quiz()):check()};
+if(fb)document.getElementById('nx').onclick=()=>{pick();quiz()};else{document.getElementById('ck').onclick=check;document.getElementById('sw').onclick=swap;document.getElementById('hn').onclick=()=>{hint=true;quiz()}}}
+function check(){const v=document.getElementById('a').value.trim();if(!v)return;const ok=v.toLowerCase()===cur.w[0];sc.n++;if(ok)sc.ok++;fb={ok,v};quiz();document.getElementById('nx').focus()}
+document.getElementById('t0').onclick=()=>{tab=0;cur=null;render()};
+document.getElementById('t1').onclick=()=>{tab=1;cur=null;render()};
+document.getElementById('m0').onclick=()=>{mode=0;render()};
+document.getElementById('m1').onclick=()=>{mode=1;render()};
+document.getElementById('rs').onclick=()=>{sc={ok:0,n:0};cur=null;fb=null;hint=false;rev=false;render()};
+render();
+</script></body></html>
